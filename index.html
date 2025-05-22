@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JRImpresiones - Lista de Precios</title>
+<style>
+  /* Fondo oscuro general */
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    margin: 0;
+    padding: 0;
+    color: #ddd;
+  }
+  .contenedor {
+    max-width: 750px;
+    margin: 30px auto;
+    background: #1e1e1e;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.9);
+    color: #ddd;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .logo img {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    filter: invert(1);
+  }
+  .titulo-logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #61dafb;
+  }
+  #fecha-hoy {
+    text-align: center;
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 20px;
+  }
+
+  /* Contenedor de la tasa con ícono */
+  #tasa-container {
+    max-width: 400px;
+    margin: 10px auto 20px auto;
+    display: flex;
+    align-items: center;
+    background: #292929;
+    border-radius: 8px;
+    padding: 8px 12px;
+    box-shadow: 0 0 8px #61dafb66;
+  }
+  #tasa-container img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    filter: invert(0.8);
+  }
+  #tasa-label {
+    color: #61dafb;
+    font-weight: 600;
+    margin-right: 8px;
+    user-select: none;
+  }
+  #tasa-dolar {
+    flex: 1;
+    font-size: 16px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: none;
+    background: #444;
+    color: #eee;
+    box-shadow: inset 0 0 8px #0008;
+    transition: box-shadow 0.3s ease;
+  }
+  #tasa-dolar:focus {
+    outline: none;
+    box-shadow: 0 0 10px #61dafb;
+  }
+
+  /* Buscador */
+  #buscador {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    padding: 12px;
+    font-size: 16px;
+    margin: 10px auto;
+    border: none;
+    border-radius: 6px;
+    background: #292929;
+    color: #eee;
+    box-shadow: inset 0 0 6px #0008;
+    transition: box-shadow 0.3s ease;
+  }
+  #buscador::placeholder {
+    color: #888;
+  }
+  #buscador:focus {
+    outline: none;
+    box-shadow: 0 0 10px #61dafb;
+  }
+
+  /* Lista productos */
+  #lista-productos {
+    margin-top: 20px;
+    display: none;
+  }
+  .producto {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    transition: background 0.3s ease;
+    background: #222;
+  }
+  .producto:hover {
+    background: #333a55;
+  }
+  .producto-info {
+    display: flex;
+    align-items: center;
+  }
+  .producto-info img {
+    width: 36px;
+    height: 36px;
+    margin-right: 10px;
+    filter: invert(1);
+  }
+  .nombre-producto {
+    font-size: 16px;
+    color: #eee;
+    font-weight: 500;
+  }
+  .precio-producto {
+    text-align: right;
+  }
+  .precio-bs {
+    color: #61dafb;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  .precio-usd {
+    color: #4CAF50;
+    font-size: 0.9em;
+  }
+  .no-encontrado {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    margin-top: 20px;
+  }
+  .nota-pie {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 13px;
+    color: #777;
+  }
+  #btn-admin {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #61dafb;
+    color: #121212;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(97,218,251,0.7);
+    user-select: none;
+    z-index: 1000;
+    transition: background 0.3s ease;
+  }
+  #btn-admin:hover {
+    background: #21a1f1;
+  }
+
+  /* Modal */
+  .modal {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  }
+  .modal.activo {
+    display: flex;
+  }
+  .modal-contenido {
+    background: #222;
+    border-radius: 10px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 25px 30px 30px 30px;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.9);
+    color: #ddd;
+  }
+  .modal-contenido h2 {
+    margin-top: 0;
+    color: #61dafb;
+    font-weight: 700;
+    font-size: 24px;
+  }
+  .modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    user-select: none;
+  }
+  .modal-close:hover {
+    color: #61dafb;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    color: #ddd;
+  }
+  th, td {
+    padding: 10px 12px;
+    border: 1px solid #333;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    background: #1a1a1a;
+    color: #61dafb;
+    font-weight: 600;
+  }
+  input.editar-nombre, input.editar-precio, input.editar-precio-bs {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: none;
+    font-size: 15px;
+    background: #333;
+    color: #ddd;
+    box-shadow: inset 0 0 6px #0008;
+    transition: box-shadow 0.3s ease;
+  }
+  input.editar-nombre:focus, input.editar-precio:focus, input.editar-precio-bs:focus {
+    outline: none;
+    box-shadow: 0 0 10px #61dafb;
+  }
+  .modal-botones {
+    margin-top: 20px;
+    text-align: right;
+  }
+  button {
+    background: #61dafb;
+    color: #121212;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 12px;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #21a1f1;
+  }
+  button.cancelar {
+    background: #555;
+    color: #ddd;
+  }
+  button.cancelar:hover {
+    background: #333;
+  }
+  #btn-agregar {
+    background: #0a7a00;
+    color: #ddd;
+  }
+  #btn-agregar:hover {
+    background: #065100;
+  }
+  .equivalencia {
+    margin-top: 10px;
+    font-weight: 600;
+    color: #61dafb;
+  }
+  .btn-eliminar {
+    background: transparent;
+    border: none;
+    color: #f44336;
+    font-weight: 900;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 8px;
+    transition: color 0.3s ease;
+  }
+  .btn-eliminar:hover {
+    color: #ff7961;
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <div class="logo">
+    <img src="https://img.icons8.com/?size=100&id=if7PppMBV0Ct&format=png&color=000000" alt="Logo" />
+    <div class="titulo-logo">JRImpresiones</div>
+  </div>
+
+  <div id="fecha-hoy"></div>
+
+  <div id="tasa-container">
+    <img src="https://img.icons8.com/?size=100&id=RxpP4tTaUhYX&format=png&color=000000" alt="Dólar" />
+    <label for="tasa-dolar" id="tasa-label">Tasa del dólar (Bs):</label>
+    <input type="number" step="0.01" min="0" id="tasa-dolar" value="94.96" />
+  </div>
+
+  <input type="text" id="buscador" placeholder="Buscar productos..." autocomplete="off" />
+
+  <div id="lista-productos"></div>
+</div>
+
+<button id="btn-admin">Administrar Productos</button>
+
+<div class="modal" id="modal-admin">
+  <div class="modal-contenido">
+    <div class="modal-close" id="modal-close">×</div>
+    <h2>Administrar Productos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio (USD)</th>
+          <th>Precio (Bs)</th>
+          <th>Eliminar</th>
+        </tr>
+      </thead>
+      <tbody id="productos-editar-lista"></tbody>
+    </table>
+    <div class="equivalencia" id="equivalencia-bs"></div>
+    <div class="modal-botones">
+      <button id="btn-agregar">Agregar Producto</button>
+      <button id="btn-guardar-productos">Guardar Cambios</button>
+      <button class="cancelar" id="btn-cancelar-modal">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let productos = [
+    { nombre: "Refresco Pulp", precioUSD: 0.98 },
+    { nombre: "Refresco Cielo", precioUSD: 0.85 },
+    { nombre: "Cerveza Sol 500ml", precioUSD: 1.05 },
+    { nombre: "Cerveza Pilsen 330ml", precioUSD: 0.96 },
+    { nombre: "Cerveza Huari 330ml", precioUSD: 0.80 },
+    { nombre: "Cerveza Cruceña 330ml", precioUSD: 0.92 },
+    { nombre: "Cerveza Paceña 330ml", precioUSD: 0.98 }
+  ];
+
+  const iconoPorDefecto = "https://img.icons8.com/?size=100&id=9671&format=png&color=000000";
+
+  const tasaDolarInput = document.getElementById("tasa-dolar");
+  const buscador = document.getElementById("buscador");
+  const listaProductos = document.getElementById("lista-productos");
+  const fechaHoy = document.getElementById("fecha-hoy");
+
+  const modalAdmin = document.getElementById("modal-admin");
+  const btnAdmin = document.getElementById("btn-admin");
+  const modalClose = document.getElementById("modal-close");
+  const productosEditarLista = document.getElementById("productos-editar-lista");
+  const btnCancelarModal = document.getElementById("btn-cancelar-modal");
+  const btnGuardarProductos = document.getElementById("btn-guardar-productos");
+  const btnAgregar = document.getElementById("btn-agregar");
+  const equivalenciaBs = document.getElementById("equivalencia-bs");
+
+  // --- Cargar productos y tasa guardados ---
+  function cargarDatosGuardados() {
+    const productosGuardados = localStorage.getItem("productos");
+    const tasaGuardada = localStorage.getItem("tasaDolar");
+
+    if (productosGuardados) {
+      try {
+        productos = JSON.parse(productosGuardados);
+      } catch(e) {
+        console.warn("Error al leer productos guardados:", e);
+      }
+    }
+    if (tasaGuardada) {
+      tasaDolarInput.value = parseFloat(tasaGuardada);
+    }
+  }
+
+  function mostrarFecha() {
+    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const fecha = new Date();
+    const dia = fecha.getDate();
+    const mes = meses[fecha.getMonth()];
+    const anio = fecha.getFullYear();
+    fechaHoy.textContent = `Lista de precios actualizada al ${dia} de ${mes} de ${anio}`;
+  }
+
+  function renderizarProductos(busqueda = "") {
+    listaProductos.innerHTML = "";
+    if (busqueda.trim() === "") {
+      listaProductos.style.display = "none";
+      return;
+    }
+    const tasa = parseFloat(tasaDolarInput.value);
+    const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+
+    if (productosFiltrados.length === 0) {
+      listaProductos.style.display = "block";
+      listaProductos.innerHTML = `<div class="no-encontrado">No se encontraron productos.</div>`;
+      return;
+    }
+
+    listaProductos.style.display = "block";
+    productosFiltrados.forEach(producto => {
+      const precioBs = (producto.precioUSD * tasa).toFixed(2);
+      const divProducto = document.createElement("div");
+      divProducto.classList.add("producto");
+      divProducto.innerHTML = `
+        <div class="producto-info">
+          <img src="${iconoPorDefecto}" alt="Icono producto">
+          <div class="nombre-producto">${producto.nombre}</div>
+        </div>
+        <div class="precio-producto">
+          <span class="precio-bs">Bs. ${precioBs}</span>
+          <span class="precio-usd">($${producto.precioUSD.toFixed(2)})</span>
+        </div>
+      `;
+      listaProductos.appendChild(divProducto);
+    });
+  }
+
+  function abrirModal() {
+    modalAdmin.classList.add("activo");
+    cargarProductosModal();
+    actualizarEquivalencia();
+  }
+
+  function cerrarModal() {
+    modalAdmin.classList.remove("activo");
+  }
+
+  function cargarProductosModal() {
+    productosEditarLista.innerHTML = "";
+    const tasa = parseFloat(tasaDolarInput.value);
+    productos.forEach((producto, index) => {
+      const precioBs = (producto.precioUSD * tasa).toFixed(2);
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td><input class="editar-nombre" type="text" value="${producto.nombre}" data-index="${index}" /></td>
+        <td><input class="editar-precio" type="number" step="0.01" min="0" value="${producto.precioUSD.toFixed(2)}" data-index="${index}" /></td>
+        <td><input class="editar-precio-bs" type="number" step="0.01" min="0" value="${precioBs}" data-index="${index}" /></td>
+        <td><button class="btn-eliminar" data-index="${index}" title="Eliminar producto">X</button></td>
+      `;
+      productosEditarLista.appendChild(fila);
+    });
+  }
+
+  function actualizarEquivalencia() {
+    const tasa = parseFloat(tasaDolarInput.value);
+    equivalenciaBs.textContent = `1 dólar equivale a Bs. ${tasa.toFixed(2)}`;
+  }
+
+  // --- Guardar productos y tasa en localStorage ---
+  function guardarDatos() {
+    localStorage.setItem("productos", JSON.stringify(productos));
+    localStorage.setItem("tasaDolar", tasaDolarInput.value);
+  }
+
+  // Eventos
+  tasaDolarInput.addEventListener("input", () => {
+    actualizarEquivalencia();
+    renderizarProductos(buscador.value);
+    cargarProductosModal();
+    guardarDatos();
+  });
+
+  buscador.addEventListener("input", () => {
+    renderizarProductos(buscador.value);
+  });
+
+  btnAdmin.addEventListener("click", abrirModal);
+  btnCancelarModal.addEventListener("click", cerrarModal);
+  modalClose.addEventListener("click", cerrarModal);
+
+  // Guardar cambios
+  btnGuardarProductos.addEventListener("click", () => {
+    const inputsNombre = document.querySelectorAll(".editar-nombre");
+    const inputsPrecioUSD = document.querySelectorAll(".editar-precio");
+    const inputsPrecioBs = document.querySelectorAll(".editar-precio-bs");
+
+    let valid = true;
+    inputsNombre.forEach(input => {
+      if (input.value.trim() === "") valid = false;
+    });
+    inputsPrecioUSD.forEach(input => {
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val < 0) valid = false;
+    });
+    inputsPrecioBs.forEach(input => {
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val < 0) valid = false;
+    });
+
+    if (!valid) {
+      alert("Por favor, completa correctamente todos los campos.");
+      return;
+    }
+
+    productos = Array.from(inputsNombre).map((input, idx) => {
+      const nombre = input.value.trim();
+      const precioUSD = parseFloat(inputsPrecioUSD[idx].value);
+      return { nombre, precioUSD };
+    });
+
+    guardarDatos(); // <-- Guardar al hacer cambios
+
+    cerrarModal();
+    renderizarProductos(buscador.value);
+  });
+
+  // Agregar producto
+  btnAgregar.addEventListener("click", () => {
+    productos.push({ nombre: "Nuevo Producto", precioUSD: 0 });
+    cargarProductosModal();
+  });
+
+  // Delegación para actualizar precios Bs y USD y eliminar productos
+  productosEditarLista.addEventListener("input", (e) => {
+    const target = e.target;
+    const index = parseInt(target.getAttribute("data-index"));
+    if (isNaN(index)) return;
+
+    if (target.classList.contains("editar-precio-bs")) {
+      const nuevaBs = parseFloat(target.value);
+      if (isNaN(nuevaBs) || nuevaBs < 0) return;
+
+      const tasa = parseFloat(tasaDolarInput.value);
+      const nuevoUSD = nuevaBs / tasa;
+      productos[index].precioUSD = parseFloat(nuevoUSD.toFixed(2));
+
+      // Actualizar precio USD input sin perder cursor
+      const inputUSD = productosEditarLista.querySelector(`input.editar-precio[data-index="${index}"]`);
+      if (inputUSD) inputUSD.value = productos[index].precioUSD.toFixed(2);
+    }
+
+    if (target.classList.contains("editar-precio")) {
+      const nuevoUSD = parseFloat(target.value);
+      if (isNaN(nuevoUSD) || nuevoUSD < 0) return;
+
+      productos[index].precioUSD = nuevoUSD;
+
+      // Actualizar precio Bs
+      const tasa = parseFloat(tasaDolarInput.value);
+      const nuevaBs = nuevoUSD * tasa;
+      const inputBs = productosEditarLista.querySelector(`input.editar-precio-bs[data-index="${index}"]`);
+      if (inputBs) inputBs.value = nuevaBs.toFixed(2);
+    }
+
+    if (target.classList.contains("editar-nombre")) {
+      productos[index].nombre = target.value;
+    }
+  });
+
+  productosEditarLista.addEventListener("click", (e) => {
+    if (e.target.classList.contains("btn-eliminar")) {
+      const index = parseInt(e.target.getAttribute("data-index"));
+      if (!isNaN(index)) {
+        if (confirm(`¿Seguro que quieres eliminar el producto "${productos[index].nombre}"?`)) {
+          productos.splice(index, 1);
+          cargarProductosModal();
+          renderizarProductos(buscador.value);
+          guardarDatos(); // <-- Guardar tras eliminar
+        }
+      }
+    }
+  });
+
+  // Inicialización
+  cargarDatosGuardados();
+  mostrarFecha();
+  actualizarEquivalencia();
+  renderizarProductos(); // Oculta lista inicial
+
+</script>
+
+
+</body>
+</html>
