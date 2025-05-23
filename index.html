@@ -12,6 +12,10 @@
     margin: 0;
     padding: 0;
     color: #ddd;
+    
+    #btn-compra:hover {
+  background: #388E3C;
+}
   }
   .contenedor {
     max-width: 750px;
@@ -320,14 +324,14 @@
 
 <div class="contenedor">
   <div class="logo">
-    <img src="https://img.icons8.com/?size=100&id=if7PppMBV0Ct&format=png&color=000000" alt="Logo" />
+    <img src="https://cdn-icons-png.flaticon.com/512/3974/3974565.png" alt="Logo" />
     <div class="titulo-logo">JRImpresiones</div>
   </div>
 
   <div id="fecha-hoy"></div>
 
   <div id="tasa-container">
-    <img src="https://img.icons8.com/?size=100&id=RxpP4tTaUhYX&format=png&color=000000" alt="Dólar" />
+    <img src="https://cdn-icons-png.flaticon.com/512/888/888879.png" alt="Dólar" />
     <label for="tasa-dolar" id="tasa-label">Tasa del dólar (Bs):</label>
     <input type="number" step="0.01" min="0" id="tasa-dolar" value="94.96" />
   </div>
@@ -362,6 +366,63 @@
     </div>
   </div>
 </div>
+
+<div class="modal" id="modal-compra">
+  <div class="modal-contenido">
+    <div class="modal-close" id="modal-compra-close">×</div>
+    <h2>Compra de Productos</h2>
+    <input type="text" id="buscador-compra" placeholder="Buscar productos para comprar..." autocomplete="off" style="
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      background: #292929;
+      color: #eee;
+      box-shadow: inset 0 0 6px #0008;
+    "/>
+    <div id="lista-productos-compra" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;"></div>
+    <h3>Productos en la compra:</h3>
+    <table style="width: 100%; margin-bottom: 10px; color: #ddd; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio Unit. (USD)</th>
+          <th>Precio Total (USD)</th>
+          <th>Precio Total (Bs)</th>
+          <th>Eliminar</th>
+        </tr>
+      </thead>
+      <tbody id="carrito-compra-lista"></tbody>
+    </table>
+    <div style="text-align: right; font-weight: 700; font-size: 18px; color: #61dafb; margin-bottom: 10px;">
+      Total: <span id="total-usd">USD 0.00</span> / <span id="total-bs">Bs. 0.00</span>
+    </div>
+    <div class="modal-botones">
+      <button id="btn-finalizar-compra">Finalizar Compra</button>
+      <button class="cancelar" id="btn-cancelar-compra">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<button id="btn-compra" style="
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  background: #4CAF50;
+  color: #121212;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(76,175,80,0.7);
+  user-select: none;
+  z-index: 1000;
+  transition: background 0.3s ease;
+">Compra</button>
 
 <script>
   let productos = [
@@ -595,6 +656,137 @@
       }
     }
   });
+  // Variables del modal compra
+const btnCompra = document.getElementById("btn-compra");
+const modalCompra = document.getElementById("modal-compra");
+const modalCompraClose = document.getElementById("modal-compra-close");
+const buscadorCompra = document.getElementById("buscador-compra");
+const listaProductosCompra = document.getElementById("lista-productos-compra");
+const carritoCompraLista = document.getElementById("carrito-compra-lista");
+const totalUsdEl = document.getElementById("total-usd");
+const totalBsEl = document.getElementById("total-bs");
+const btnCancelarCompra = document.getElementById("btn-cancelar-compra");
+const btnFinalizarCompra = document.getElementById("btn-finalizar-compra");
+
+let carrito = [];
+
+// Abrir modal compra
+btnCompra.addEventListener("click", () => {
+  modalCompra.classList.add("activo");
+  buscadorCompra.value = "";
+  renderizarListaCompra("");
+  renderizarCarrito();
+});
+
+// Cerrar modal compra
+function cerrarModalCompra() {
+  modalCompra.classList.remove("activo");
+  carrito = [];
+  renderizarCarrito();
+}
+
+modalCompraClose.addEventListener("click", cerrarModalCompra);
+btnCancelarCompra.addEventListener("click", cerrarModalCompra);
+
+// Filtrar productos para compra
+buscadorCompra.addEventListener("input", () => {
+  renderizarListaCompra(buscadorCompra.value);
+});
+
+function renderizarListaCompra(filtro) {
+  listaProductosCompra.innerHTML = "";
+  const tasa = parseFloat(tasaDolarInput.value);
+  const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(filtro.toLowerCase()));
+
+  if (productosFiltrados.length === 0) {
+    listaProductosCompra.innerHTML = `<div style="text-align:center; color:#999; font-style:italic;">No se encontraron productos.</div>`;
+    return;
+  }
+
+  productosFiltrados.forEach((producto, index) => {
+    const precioBs = (producto.precioUSD * tasa).toFixed(2);
+    const divProducto = document.createElement("div");
+    divProducto.classList.add("producto");
+    divProducto.style.justifyContent = "space-between";
+    divProducto.style.marginBottom = "8px";
+    divProducto.innerHTML = `
+      <div class="producto-info" style="flex-grow:1;">
+        <img src="${iconoPorDefecto}" alt="Icono producto" />
+        <span class="nombre-producto">${producto.nombre}</span>
+      </div>
+      <div style="min-width: 120px; text-align: right;">
+        <span class="precio-usd">USD ${producto.precioUSD.toFixed(2)}</span> /
+        <span class="precio-bs">Bs. ${precioBs}</span>
+      </div>
+      <button style="
+        background:#4CAF50; color:#121212; border:none; border-radius:5px; padding:4px 8px; font-weight:700; cursor:pointer;
+      ">Agregar</button>
+    `;
+
+    const btnAgregar = divProducto.querySelector("button");
+    btnAgregar.addEventListener("click", () => {
+      agregarAlCarrito(producto);
+    });
+
+    listaProductosCompra.appendChild(divProducto);
+  });
+}
+
+function agregarAlCarrito(producto) {
+  const index = carrito.findIndex(item => item.nombre === producto.nombre);
+  if (index > -1) {
+    carrito[index].cantidad++;
+  } else {
+    carrito.push({ nombre: producto.nombre, precioUSD: producto.precioUSD, cantidad: 1 });
+  }
+  renderizarCarrito();
+}
+
+function renderizarCarrito() {
+  carritoCompraLista.innerHTML = "";
+  const tasa = parseFloat(tasaDolarInput.value);
+  let totalUSD = 0;
+  let totalBS = 0;
+
+  carrito.forEach((item, index) => {
+    const totalProductoUSD = item.precioUSD * item.cantidad;
+    const totalProductoBS = totalProductoUSD * tasa;
+    totalUSD += totalProductoUSD;
+    totalBS += totalProductoBS;
+
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${item.nombre}</td>
+      <td style="text-align:center;">${item.cantidad}</td>
+      <td style="text-align:right;">$${item.precioUSD.toFixed(2)}</td>
+      <td style="text-align:right;">$${totalProductoUSD.toFixed(2)}</td>
+      <td style="text-align:right;">Bs. ${totalProductoBS.toFixed(2)}</td>
+      <td style="text-align:center;">
+        <button class="btn-eliminar" style="color:#f44336; font-weight:bold; font-size:18px; cursor:pointer;">×</button>
+      </td>
+    `;
+    // Botón eliminar producto del carrito
+    fila.querySelector("button.btn-eliminar").addEventListener("click", () => {
+      carrito.splice(index, 1);
+      renderizarCarrito();
+    });
+
+    carritoCompraLista.appendChild(fila);
+  });
+
+  totalUsdEl.textContent = `USD ${totalUSD.toFixed(2)}`;
+  totalBsEl.textContent = `Bs. ${totalBS.toFixed(2)}`;
+}
+
+// Finalizar compra (solo cierra y limpia por ahora)
+btnFinalizarCompra.addEventListener("click", () => {
+  if (carrito.length === 0) {
+    alert("No hay productos en la compra.");
+    return;
+  }
+  alert("Compra finalizada con éxito.\nGracias por su compra.");
+  cerrarModalCompra();
+});
 
   // Inicialización
   cargarDatosGuardados();
