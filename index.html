@@ -426,6 +426,34 @@
 
 <script>
   let productos = [
+  { nombre: "Huevos C/U", precioUSD: 0.32 },
+  { nombre: "Refresco Cool", precioUSD: 1.16 },
+  { nombre: "Harina pan de Arroz", precioUSD: 1.26 },
+  { nombre: "Harina Kaly", precioUSD: 1.32 },
+  { nombre: "Arroz Mary Naranja", precioUSD: 1.58 },
+  { nombre: "Espagueti Horizonte", precioUSD: 1.89 },
+  { nombre: "Mantequilla Mavesa (250g)", precioUSD: 1.79 },
+  { nombre: "Mantequilla Mavesa (500g)", precioUSD: 3.11 },
+  { nombre: "Mantequilla Deline (250g)", precioUSD: 1.47 },
+  { nombre: "Mantequilla Nelly (250g)", precioUSD: 1.42 },
+  { nombre: "Mayonesa Sofía (250g)", precioUSD: 1.84 },
+  { nombre: "Mayonesa Sofía (500g)", precioUSD: 3.21 },
+  { nombre: "Azúcar Alvarigua (1KG)", precioUSD: 1.84 },
+  { nombre: "Azúcar Alvarigua (C/U)", precioUSD: 0.21 },
+  { nombre: "Avena Alvarigua", precioUSD: 1.16 },
+  { nombre: "Mayonesa Mavesa (250g)", precioUSD: 1.89 },
+  { nombre: "Salsa Pampero (250g)", precioUSD: 1.79 },
+  { nombre: "Salsa Pampero (500g)", precioUSD: 2.47 },
+  { nombre: "Espagueti Especial (Largo 1Kg)", precioUSD: 1.68 },
+  { nombre: "Espagueti Horizonte (Corto 1Kg)", precioUSD: 1.89 },
+  { nombre: "Aceite (1L)", precioUSD: 3.95 },
+  { nombre: "Aceite (C/U)", precioUSD: 0.42 },
+  { nombre: "Sardiona Omega", precioUSD: 0.95 },
+  { nombre: "Maizina", precioUSD: 0.74 },
+  { nombre: "Condimentos (Papeleta Pequeña)", precioUSD: 0 },
+  { nombre: "Color Iberia (Papeleta Grande)", precioUSD: 0.32 },
+  { nombre: "Adobo Iberia (Papeleta Grande)", precioUSD: 0.37 },
+  { nombre: "Pimienta Iberia (Papeleta Grande)", precioUSD: 0.37 },
   { nombre: "Leche Condensada", precioUSD: 1.79 },
   { nombre: "Jugo Frusty (1.5L)", precioUSD: 1.16 },
   { nombre: "Refresco Cool (2L)", precioUSD: 1.16 },
@@ -441,8 +469,8 @@
   { nombre: "Pepito Boli Bulls (Pequeño)", precioUSD: 0.26 },
   { nombre: "Pepito Boli Bulls (Grande)", precioUSD: 0.84 },
   { nombre: "Pepito Oink (Pequeño)", precioUSD: 0.26 },
-  { nombre: "Dorito (Pequeño)", precioUSD: 0 },     // Agotado
-  { nombre: "Dorito (Mediano)", precioUSD: 0 },     // Agotado
+  { nombre: "Dorito (Pequeño)", precioUSD: 0 },  // Agotado
+  { nombre: "Dorito (Mediano)", precioUSD: 0 },  // Agotado
   { nombre: "Café Arauca (50g)", precioUSD: 0.89 },
   { nombre: "Pastilla Acetaminofen (C/U)", precioUSD: 0.05 },
   { nombre: "Pastilla Ibuprofeno (C/U)", precioUSD: 0.11 },
@@ -489,8 +517,9 @@
   { nombre: "Carta de Residencia", precioUSD: 0.26 },
   { nombre: "Carta de Buena Conducta", precioUSD: 0.26 },
   { nombre: "Rif", precioUSD: 0.21 },
-  { nombre: "Hoja Blanca (C/U)", precioUSD: 0.02 }
-  ];
+  { nombre: "Hoja Blanca (C/U)", precioUSD: 0.02 },
+  { nombre: "Sal", precioUSD: 0.26 },
+];
 
   const iconoPorDefecto = "https://img.icons8.com/?size=100&id=9671&format=png&color=000000";
 
@@ -510,15 +539,10 @@
 
   // --- Cargar productos y tasa guardados ---
   function cargarDatosGuardados() {
-    const productosGuardados = localStorage.getItem("productos");
     const tasaGuardada = localStorage.getItem("tasaDolar");
 
     if (productosGuardados) {
-      try {
-        productos = JSON.parse(productosGuardados);
-      } catch(e) {
-        console.warn("Error al leer productos guardados:", e);
-      }
+    
     }
     if (tasaGuardada) {
       tasaDolarInput.value = parseFloat(tasaGuardada);
